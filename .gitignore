@@ -1,0 +1,48 @@
+# CMake build directories
+build/
+cmake-build-debug/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+cmake_install.cmake
+compile_commands.json
+Testing/
+
+# Compiler outputs
+*.d
+*.o
+*.obj
+*.slo
+*.lo
+*.gch
+*.pch
+*.ilk
+*.pdb
+*.so
+*.dylib
+*.dll
+*.mod
+*.smod
+*.lai
+*.la
+*.a
+*.lib
+*.exe
+*.out
+*.app
+*.dwo
+
+# IDE settings
+.idea/
+.vscode/
+
+# CLion
+cmake-build-debug/
+*.iml
+*.iws
+*.ipr
+
+# Optional local cache
+.DS_Store
