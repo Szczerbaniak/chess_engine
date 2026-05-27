@@ -32,8 +32,16 @@ inline void pop_bit(Bitboard& bb, Square sq) {
 
 constexpr Bitboard FILE_A = 0x0101010101010101ULL;
 constexpr Bitboard NOT_FILE_A = ~FILE_A;
+constexpr Bitboard FILE_B = 0x0202020202020202ULL;
+constexpr Bitboard NOT_FILE_B = ~FILE_B;
 constexpr Bitboard FILE_H = 0x8080808080808080ULL;
 constexpr Bitboard NOT_FILE_H = ~FILE_H;
+constexpr Bitboard FILE_G = 0x4040404040404040ULL;
+constexpr Bitboard NOT_FILE_G = ~FILE_G;
+
+constexpr Bitboard NOT_FILE_AB = ~(FILE_A | FILE_B);
+constexpr Bitboard NOT_FILE_GH = ~(FILE_G | FILE_H);
+
 constexpr Bitboard RANK_1 = 0x00000000000000FFULL;
 constexpr Bitboard RANK_8 = 0xFF00000000000000ULL;
 
