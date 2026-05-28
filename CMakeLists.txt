@@ -17,9 +17,10 @@ endif()
 # 1. Rdzeń silnika (wszystkie pliki logiczne bez main.cpp)
 # Dzięki temu kod źródłowy skompiluje się raz i będzie użyty w aplikacji i testach
 add_library(engine_core STATIC
+    src/main.cpp
     src/Board.cpp
     # src/Attacks.cpp
-    # src/MoveGenerator.cpp
+    src/MoveGenerator.cpp
     # src/Search.cpp
     # src/Evaluate.cpp
 )

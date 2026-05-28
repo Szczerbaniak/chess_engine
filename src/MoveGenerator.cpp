@@ -52,9 +52,11 @@ inline Bitboard mask_pawn_attacks(Square sq, Color cl) {
 inline Bitboard mask_pawn_pushes(Square sq, Color cl, Bitboard occupancy) {
     Bitboard pushes = 0Ull;
 
-    if (cl == WHITE) {
-        
-    }
+    // if (cl == WHITE) {
+
+    // }
+
+    return pushes;
 }
 
 inline Bitboard mask_bishop_attacks(Square sq, Bitboard occupancy) {
