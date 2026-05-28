@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <bit>
+#include <array>
+
 
 using Bitboard = uint64_t;
 
@@ -42,8 +44,8 @@ constexpr Bitboard NOT_FILE_G = ~FILE_G;
 constexpr Bitboard NOT_FILE_AB = ~(FILE_A | FILE_B);
 constexpr Bitboard NOT_FILE_GH = ~(FILE_G | FILE_H);
 
-constexpr Bitboard RANK_1 = 0x00000000000000FFULL;
-constexpr Bitboard RANK_8 = 0xFF00000000000000ULL;
+constexpr Bitboard RANK_1 = 0x00FFULL;
+constexpr Bitboard RANK_8 = 0xFF00ULL;
 
 inline bool on_file_a(Square sq) {
     return FILE_A & (1ULL << sq);
@@ -60,3 +62,61 @@ inline bool on_rank_1(Square sq) {
 inline bool on_rank_8(Square sq) {
     return RANK_8 & (1ULL << sq);
 }
+
+//flagi:
+
+constexpr uint8_t MOVE_QUIET = 0b0000; //bez bicia
+constexpr uint8_t MOVE_PAWN_DOUBLE = 0b0001;
+constexpr uint8_t MOVE_KING_CASTLE = 0b0010;
+constexpr uint8_t MOVE_QUEEN_CASTLE = 0b0011;
+constexpr uint8_t MOVE_CAPTURE = 0b0100;
+constexpr uint8_t MOVE_EN_PASSANT = 0b0101;
+
+// Promocje pionka (bity 3 i 4 oznaczają, że to promocja, a dwa najmłodsze to typ figury)
+constexpr uint8_t MOVE_PROMO_KNIGHT = 0b1000;
+constexpr uint8_t MOVE_PROMO_BISHOP = 0b1001;
+constexpr uint8_t MOVE_PROMO_ROOK = 0b1010;
+constexpr uint8_t MOVE_PROMO_QUEEN = 0b1011;
+constexpr uint8_t MOVE_PROMO_CAP_KNIGHT = 0b1100; // Promocja z jednoczesnym biciem
+constexpr uint8_t MOVE_PROMO_CAP_BISHOP = 0b1101;
+constexpr uint8_t MOVE_PROMO_CAP_ROOK = 0b1110;
+constexpr uint8_t MOVE_PROMO_CAP_QUEEN = 0b1111;
+
+struct Move
+{
+    uint16_t data;
+
+    inline Square from() const { return Square(data & 0b00111111); }
+    inline Square to() const { return Square((data >> 6) & 0b00111111); }
+    inline uint8_t flag() const { return ((data >> 12) & 0b1111); }
+};
+
+inline Move make_move(Square from, Square to, uint8_t flag) {
+    return Move{ static_cast<uint16_t>(flag << 12 | to << 6 | from) };
+}
+
+struct MoveList {
+    // Górna granica ilosci ruchów to:
+    // 9 hetmanów x 21 ruchów = 189
+    // 2 wieże x 14 ruchów = 28
+    // 2 gońce x 13 ruchów = 26
+    // 2 skoczki x 8 ruchów = 16
+    // 1 król x 8 ruchów = 8
+    // = 267, jest to wynik nieosiągalny i realny znajduje się w okolicy 70 (max jaki jest osiągalny w warunkach laboratoryjnych hehe, to 118) - dlatego możemy sobie pozwolić na deklarację tablicy 256 elementowej (gdzie każdy ruch zajmuje 2 bajty) zamiast vectora, który w niektórych sytuacjach mógłby być wolny
+
+    std::array<Move, 265> moves;
+    int count = 0;
+
+    inline void push_back(Move mv) {
+        moves[count] = mv;
+        count += 1;
+    }
+
+    inline Move* begin() {
+        return &moves[0];
+    }
+
+    inline Move* end() {
+        return &moves[count];
+    }
+};

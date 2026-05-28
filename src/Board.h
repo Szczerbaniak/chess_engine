@@ -2,6 +2,11 @@
 #include <array>
 #include "Types.h"
 
+// Jak zmieścić ruch w 16 bitach?
+// Bity 0–5 (6 bitów): Pole startowe from
+// Bity 6–11 (6 bitów): Pole docelowe to
+// Bity 12–15 (4 bity): Specjalne flagi ruchu (roszady, bicia, promocje).
+
 class Board {
 public:
     std::array<std::array<Bitboard, 6>, 2> pieces; 

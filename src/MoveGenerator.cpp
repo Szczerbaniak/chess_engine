@@ -52,9 +52,36 @@ inline Bitboard mask_pawn_attacks(Square sq, Color cl) {
 inline Bitboard mask_pawn_pushes(Square sq, Color cl, Bitboard occupancy) {
     Bitboard pushes = 0Ull;
 
-    // if (cl == WHITE) {
+    if (cl == WHITE) {
+        Square single_step = Square(sq + 8);
+        
+        if (!(occupancy & (1ULL << single_step))) {
+            pushes |= 1ULL << single_step;
+            
+            if (sq >= A2 && sq <= H2) {
+                Square double_step = Square(sq + 16);
+                if (!(occupancy & (1ULL << single_step))) {
+                    pushes |= 1ULL << single_step;
+                }
+            }
 
-    // }
+        }
+    } else {
+        Square single_step = Square(sq - 8);
+        
+        if (!(occupancy & (1ULL << single_step))) {
+            pushes |= 1ULL << single_step;
+            
+            if (sq >= A7 && sq <= H7) {
+                Square double_step = Square(sq - 16);
+                if (!(occupancy & (1ULL << single_step))) {
+                    pushes |= 1ULL << single_step;
+                }
+            }
+
+        }
+    }
+
 
     return pushes;
 }
