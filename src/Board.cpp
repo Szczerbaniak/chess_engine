@@ -242,7 +242,6 @@ void Board::generate_pseudo_legal_queen_moves(MoveList &move_list, Bitboard quee
     
 }
 
-
 void Board::generate_pseudo_legal_moves(MoveList& move_list) {
     Color my_color = side_to_move;
 
@@ -259,4 +258,25 @@ void Board::generate_pseudo_legal_moves(MoveList& move_list) {
     generate_pseudo_legal_bishop_moves(move_list, bishop);
     generate_pseudo_legal_rook_moves(move_list, rook);
     generate_pseudo_legal_queen_moves(move_list, queen);
+}
+
+bool Board::is_square_attacked(Square sq, Color attacker) {
+
+    if (mask_knight_attacks(sq) & pieces[attacker][KNIGHT])
+    {
+        return true;
+    } else if (mask_king_attacks(sq) & pieces[attacker][KING]) {
+        return true;
+    }
+    else if (mask_pawn_attacks(sq, (attacker == WHITE) ? BLACK : WHITE) & pieces[attacker][PAWN]) {
+        return true;        
+    } else if (mask_bishop_attacks(sq, all_pieces) & (pieces[attacker][BISHOP] | pieces[attacker][QUEEN]))
+    {
+        return true;
+    } else if (mask_rook_attacks(sq, all_pieces) & (pieces[attacker][ROOK] | pieces[attacker][QUEEN]))
+    {
+        return true;
+    }
+
+    return false;
 }
