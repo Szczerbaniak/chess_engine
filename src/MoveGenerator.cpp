@@ -60,8 +60,8 @@ inline Bitboard mask_pawn_pushes(Square sq, Color cl, Bitboard occupancy) {
             
             if (sq >= A2 && sq <= H2) {
                 Square double_step = Square(sq + 16);
-                if (!(occupancy & (1ULL << single_step))) {
-                    pushes |= 1ULL << single_step;
+                if (!(occupancy & (1ULL << double_step))) {
+                    pushes |= 1ULL << double_step;
                 }
             }
 
@@ -74,8 +74,8 @@ inline Bitboard mask_pawn_pushes(Square sq, Color cl, Bitboard occupancy) {
             
             if (sq >= A7 && sq <= H7) {
                 Square double_step = Square(sq - 16);
-                if (!(occupancy & (1ULL << single_step))) {
-                    pushes |= 1ULL << single_step;
+                if (!(occupancy & (1ULL << double_step))) {
+                    pushes |= 1ULL << double_step;
                 }
             }
 

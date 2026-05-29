@@ -1,5 +1,7 @@
 #pragma once
 #include <array>
+#include <bit>
+#include <algorithm>
 #include "Types.h"
 
 // Jak zmieścić ruch w 16 bitach?
@@ -25,4 +27,8 @@ public:
     Board() { clear(); };
     ~Board();
 
+    void generate_pseudo_legal_moves(MoveList &move_list);
+    void generate_pseudo_legal_knight_moves(MoveList &move_list, Bitboard pawn);
+    void generate_pseudo_legal_king_moves(MoveList &move_list, Bitboard pawn);
+    void generate_pseudo_legal_pawn_moves(MoveList &move_list, Bitboard pawn);
 };

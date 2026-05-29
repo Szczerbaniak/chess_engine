@@ -20,7 +20,7 @@ enum Square : uint8_t {
     A8, B8, C8, D8, E8, F8, G8, H8, NO_SQUARE
 };
 
-inline bool get_bit(Bitboard bb, Square sq) {
+inline bool get_bit(Bitboard& bb, Square sq) {
     return bb & (1ULL << sq);
 }
 
@@ -64,8 +64,8 @@ inline bool on_rank_8(Square sq) {
 }
 
 //flagi:
-
-constexpr uint8_t MOVE_QUIET = 0b0000; //bez bicia
+//ruchy bez bicia
+constexpr uint8_t MOVE_QUIET = 0b0000;
 constexpr uint8_t MOVE_PAWN_DOUBLE = 0b0001;
 constexpr uint8_t MOVE_KING_CASTLE = 0b0010;
 constexpr uint8_t MOVE_QUEEN_CASTLE = 0b0011;
@@ -77,7 +77,9 @@ constexpr uint8_t MOVE_PROMO_KNIGHT = 0b1000;
 constexpr uint8_t MOVE_PROMO_BISHOP = 0b1001;
 constexpr uint8_t MOVE_PROMO_ROOK = 0b1010;
 constexpr uint8_t MOVE_PROMO_QUEEN = 0b1011;
-constexpr uint8_t MOVE_PROMO_CAP_KNIGHT = 0b1100; // Promocja z jednoczesnym biciem
+
+// Promocja z jednoczesnym biciem
+constexpr uint8_t MOVE_PROMO_CAP_KNIGHT = 0b1100; 
 constexpr uint8_t MOVE_PROMO_CAP_BISHOP = 0b1101;
 constexpr uint8_t MOVE_PROMO_CAP_ROOK = 0b1110;
 constexpr uint8_t MOVE_PROMO_CAP_QUEEN = 0b1111;
