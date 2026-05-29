@@ -34,4 +34,14 @@ public:
     void generate_pseudo_legal_bishop_moves(MoveList &move_list, Bitboard bishop);
     void generate_pseudo_legal_rook_moves(MoveList &move_list, Bitboard rook);
     void generate_pseudo_legal_queen_moves(MoveList &move_list, Bitboard queen);
+
+    // bool make_move(Move move, UndoState &state);
+    // void unmake_move(Move move, const UndoState &state);
+    bool is_square_attacked(Square sq, Color attacker);
+};
+
+struct UndoState {
+    uint8_t castling_rights;
+    Square en_passant;
+    PieceType captured_piece; 
 };
