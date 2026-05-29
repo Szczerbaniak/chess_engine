@@ -1,5 +1,11 @@
-int main(int argc, char const *argv[])
+#include <bit>
+#include <bitset>
+#include <cstdint>
+#include <iostream>
+
+int main()
 {
-    /* code */
-    return 0;
+    for (const std::uint8_t i : {0, 0b11111111, 0b00011100, 0b00011101})
+        std::cout << "countr_zero( " << std::bitset<8>(i) << " ) = "
+                  << std::countr_zero(i) << '\n';
 }

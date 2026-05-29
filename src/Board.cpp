@@ -1,4 +1,5 @@
 #include "Board.h"
+#include "MoveGenerator.h"
 
 void Board::clear() {
     pieces = {};
@@ -36,4 +37,226 @@ void Board::load_start_position() {
     all_pieces = white_pieces | black_pieces;
 
     castling_rights = 0b1111;
+}
+
+void Board::generate_pseudo_legal_knight_moves(MoveList& move_list, Bitboard knight) {
+    Color my_color = side_to_move;
+    Color opponents_color = side_to_move ? WHITE : BLACK;
+
+    std::array<Bitboard, 2> pieces_array = {white_pieces, black_pieces};
+
+    while (knight) {
+        int knight_field = std::countr_zero(knight);
+
+        Bitboard attacks = knight_attacks[knight_field] & ~(pieces_array[my_color]);
+        
+        while (attacks) {
+            int to_sq = std::countr_zero(attacks);
+            uint8_t flag = (pieces_array[opponents_color] & (1ULL << to_sq)) ? MOVE_CAPTURE : MOVE_QUIET;
+            
+            move_list.push_back(make_move(Square(knight_field), Square(to_sq), flag));
+            attacks &= (attacks - 1);
+        }
+        
+        knight &= (knight - 1);
+    }
+}
+
+void Board::generate_pseudo_legal_king_moves(MoveList& move_list, Bitboard king) {
+    Color my_color = side_to_move;
+    Color opponents_color = side_to_move ? WHITE : BLACK;
+
+    std::array<Bitboard, 2> pieces_array = {white_pieces, black_pieces};
+
+    while (king) {
+        int king_field = std::countr_zero(king);
+        Bitboard attacks = king_attacks[king_field] & ~(pieces_array[my_color]);
+
+        while (attacks) {
+            int to_sq = std::countr_zero(attacks);
+            uint8_t flag = (pieces_array[opponents_color] & (1ULL << to_sq)) ? MOVE_CAPTURE : MOVE_QUIET;
+
+            move_list.push_back(make_move(Square(king_field), Square(to_sq), flag));
+            attacks &= (attacks - 1);
+        }
+        king &= (king - 1);
+
+    }
+
+    //roszady
+    int my_rights = (my_color == WHITE) ? (castling_rights & 0b0011) : (castling_rights & 0b1100);
+
+    if (my_rights != 0) {
+        if (my_color == WHITE && (my_rights & 1) && !(all_pieces & ((1ULL << F1) | (1ULL << G1)))) {
+            move_list.push_back(make_move(E1, G1, MOVE_KING_CASTLE));
+        }
+        if (my_color == WHITE && (my_rights & 2) && !(all_pieces & ((1ULL << B1) | (1ULL << C1) | (1ULL << D1)))) {
+            move_list.push_back(make_move(E1, C1, MOVE_QUEEN_CASTLE));
+        }
+        if (my_color == BLACK && (my_rights & 4) && !(all_pieces & ((1ULL << F8) | (1ULL << G8)))) {
+            move_list.push_back(make_move(E8, G8, MOVE_KING_CASTLE));
+        }
+        if (my_color == BLACK && (my_rights & 8) && !(all_pieces & ((1ULL << B8) | (1ULL << C8) | (1ULL << D8)))) {
+            move_list.push_back(make_move(E8, C8, MOVE_QUEEN_CASTLE));
+        }
+    }
+    
+}
+
+void Board::generate_pseudo_legal_pawn_moves(MoveList& move_list, Bitboard pawn) {
+    Color my_color = side_to_move;
+    Color opponents_color = side_to_move ? WHITE : BLACK;
+
+    std::array<Bitboard, 2> pieces_array = {white_pieces, black_pieces};
+
+    while (pawn) {
+        int pawn_field = std::countr_zero(pawn);
+        Bitboard attacks = pawn_attacks[my_color][pawn_field] & pieces_array[opponents_color];
+
+        Bitboard pawn_moves = mask_pawn_pushes(Square(pawn_field), my_color, all_pieces);
+        int double_push_shift = (my_color == WHITE) ? 16 : -16;
+
+        while (pawn_moves) {
+            int to_sq = std::countr_zero(pawn_moves);
+            int flag = ((to_sq - pawn_field) == double_push_shift) ? MOVE_PAWN_DOUBLE : MOVE_QUIET;
+
+            bool is_promotion = (my_color == WHITE) ? (to_sq >= A8) : (to_sq <= H1);
+            if (is_promotion)
+            {
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_KNIGHT));
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_BISHOP));
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_ROOK));
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_QUEEN));
+                        }
+            else
+            {
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), flag));
+            }
+            pawn_moves &= (pawn_moves - 1);
+        }
+
+        while (attacks) {
+            int to_sq = std::countr_zero(attacks);
+
+            bool is_promotion = (my_color == WHITE) ? (to_sq >= A8) : (to_sq <= H1);
+            if (is_promotion)
+            {
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_CAP_KNIGHT));
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_CAP_BISHOP));
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_CAP_ROOK));
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_PROMO_CAP_QUEEN));
+                        }
+            else
+            {
+                move_list.push_back(make_move(Square(pawn_field), Square(to_sq), MOVE_CAPTURE));
+            }
+            attacks &= (attacks - 1);
+        }
+        pawn &= (pawn - 1);
+    }
+
+    if (en_passant != NO_SQUARE) {
+
+        Bitboard ep_candidates = pawn_attacks[opponents_color][en_passant] & pieces[my_color][PAWN];
+    
+        while (ep_candidates) {
+            int from_sq = std::countr_zero(ep_candidates);
+            
+
+            move_list.push_back(make_move(Square(from_sq), Square(en_passant), MOVE_EN_PASSANT));
+            
+            ep_candidates &= (ep_candidates - 1);
+        }
+    }
+}
+
+void Board::generate_pseudo_legal_bishop_moves(MoveList &move_list, Bitboard bishop) {
+    Color my_color = side_to_move;
+    Color opponents_color = side_to_move ? WHITE : BLACK;
+
+    std::array<Bitboard, 2> pieces_array = {white_pieces, black_pieces};
+
+    while (bishop)
+    {
+        int bishop_field = std::countr_zero(bishop);
+        Bitboard attacks = mask_bishop_attacks(Square(bishop_field), all_pieces) & ~(pieces_array[my_color]);
+
+        while (attacks) {
+            int to_sq = std::countr_zero(attacks);
+            uint8_t flag = (pieces_array[opponents_color] & (1ULL << to_sq)) ? MOVE_CAPTURE : MOVE_QUIET;
+
+            move_list.push_back(make_move(Square(bishop_field), Square(to_sq), flag));
+            attacks &= (attacks - 1);
+        }
+        bishop &= (bishop - 1);
+
+    }
+    
+}
+
+void Board::generate_pseudo_legal_rook_moves(MoveList &move_list, Bitboard rook) {
+    Color my_color = side_to_move;
+    Color opponents_color = side_to_move ? WHITE : BLACK;
+
+    std::array<Bitboard, 2> pieces_array = {white_pieces, black_pieces};
+
+    while (rook)
+    {
+        int rook_field = std::countr_zero(rook);
+        Bitboard attacks = mask_rook_attacks(Square(rook_field), all_pieces) & ~(pieces_array[my_color]);
+
+        while (attacks) {
+            int to_sq = std::countr_zero(attacks);
+            uint8_t flag = (pieces_array[opponents_color] & (1ULL << to_sq)) ? MOVE_CAPTURE : MOVE_QUIET;
+
+            move_list.push_back(make_move(Square(rook_field), Square(to_sq), flag));
+            attacks &= (attacks - 1);
+        }
+        rook &= (rook - 1);
+
+    }
+    
+}
+
+void Board::generate_pseudo_legal_queen_moves(MoveList &move_list, Bitboard queen) {
+    Color my_color = side_to_move;
+    Color opponents_color = side_to_move ? WHITE : BLACK;
+
+    std::array<Bitboard, 2> pieces_array = {white_pieces, black_pieces};
+
+    while (queen)
+    {
+        int queen_field = std::countr_zero(queen);
+        Bitboard attacks = mask_queen_attacks(Square(queen_field), all_pieces) & ~(pieces_array[my_color]);
+
+        while (attacks) {
+            int to_sq = std::countr_zero(attacks);
+            uint8_t flag = (pieces_array[opponents_color] & (1ULL << to_sq)) ? MOVE_CAPTURE : MOVE_QUIET;
+
+            move_list.push_back(make_move(Square(queen_field), Square(to_sq), flag));
+            attacks &= (attacks - 1);
+        }
+        queen &= (queen - 1);
+
+    }
+    
+}
+
+
+void Board::generate_pseudo_legal_moves(MoveList& move_list) {
+    Color my_color = side_to_move;
+
+    Bitboard knight = pieces[my_color][KNIGHT];
+    Bitboard king   = pieces[my_color][KING];
+    Bitboard pawn   = pieces[my_color][PAWN];
+    Bitboard bishop = pieces[my_color][BISHOP];
+    Bitboard rook   = pieces[my_color][ROOK];
+    Bitboard queen  = pieces[my_color][QUEEN];
+
+    generate_pseudo_legal_knight_moves(move_list, knight);
+    generate_pseudo_legal_king_moves(move_list, king);
+    generate_pseudo_legal_pawn_moves(move_list, pawn);
+    generate_pseudo_legal_bishop_moves(move_list, bishop);
+    generate_pseudo_legal_rook_moves(move_list, rook);
+    generate_pseudo_legal_queen_moves(move_list, queen);
 }
