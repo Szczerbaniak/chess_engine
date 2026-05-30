@@ -35,9 +35,9 @@ public:
     void generate_pseudo_legal_rook_moves(MoveList &move_list, Bitboard rook);
     void generate_pseudo_legal_queen_moves(MoveList &move_list, Bitboard queen);
 
-    // bool make_move(Move move, UndoState &state);
     // void unmake_move(Move move, const UndoState &state);
     bool is_square_attacked(Square sq, Color attacker);
+    bool make_move_on_board(Move move, UndoState &state);
 };
 
 struct UndoState {

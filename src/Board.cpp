@@ -280,3 +280,102 @@ bool Board::is_square_attacked(Square sq, Color attacker) {
 
     return false;
 }
+
+bool Board::make_move_on_board(Move move, UndoState& state) {
+    Square from = move.from();
+    Square to = move.to();
+    uint8_t flag = move.flag();
+    
+    Color my_color = side_to_move;
+    Color opponent = (my_color == WHITE) ? BLACK : WHITE;
+
+    state.castling_rights = castling_rights;
+    state.en_passant = en_passant;
+    state.captured_piece = NONE;
+
+    PieceType moving_piece;
+
+    for (int piece = PAWN; piece <= KING; piece++) {
+        if (pieces[my_color][piece] & (1ULL<< from)) {
+            moving_piece = PieceType(piece);
+            break;
+        }
+    }
+
+    bool capture = flag & MOVE_CAPTURE;
+    bool is_en_passant = flag & MOVE_EN_PASSANT;
+    bool promotion = flag & 0b1000;
+
+    
+
+    if (capture) {
+        if (is_en_passant) {
+            state.captured_piece = PAWN;
+            Square ep_pawn_sq = (my_color == WHITE) ? Square(to - 8) : Square(to + 8);
+            pieces[opponent][PAWN] ^= (1ULL << ep_pawn_sq);
+        } else {
+            for (int piece = PAWN; piece <= KING; piece++) {
+                if (pieces[opponent][piece] & (1ULL << to)) {
+                    state.captured_piece = PieceType(piece);
+                    pieces[opponent][piece] ^= (1ULL << to);
+                    break;
+                }
+            }
+        }
+    }
+    pieces[my_color][moving_piece] ^= (1ULL << from);
+    pieces[my_color][moving_piece] ^= (1ULL << to);
+
+    if (flag & 0b1000) { 
+        PieceType new_piece = PieceType((flag & 0b0011) + 1);
+    
+        pieces[my_color][PAWN] ^= (1ULL << to);
+        pieces[my_color][new_piece] ^= (1ULL << to);
+    }
+
+    if (flag == MOVE_KING_CASTLE) {
+        if (my_color == WHITE) {
+            pieces[WHITE][ROOK] ^= (1ULL << H1) | (1ULL << F1); // Wieża z H1 na F1
+        } else {
+            pieces[BLACK][ROOK] ^= (1ULL << H8) | (1ULL << F8); // Wieża z H8 na F8
+        }
+    } 
+    else if (flag == MOVE_QUEEN_CASTLE) {
+        if (my_color == WHITE) {
+            pieces[WHITE][ROOK] ^= (1ULL << A1) | (1ULL << D1); // Wieża z A1 na D1
+        } else {
+            pieces[BLACK][ROOK] ^= (1ULL << A8) | (1ULL << D8); // Wieża z A8 na D8
+        }
+    }
+    
+    if (flag == MOVE_PAWN_DOUBLE) {
+        en_passant = (my_color == WHITE) ? Square(from + 8) : Square(from - 8);
+    } else {
+        en_passant = NO_SQUARE;
+    }
+
+    if (from == E1 || to == E1) castling_rights &= ~0b0011;
+    if (from == E8 || to == E8) castling_rights &= ~0b1100;
+    if (from == H1 || to == H1) castling_rights &= ~0b0001;
+    if (from == A1 || to == A1) castling_rights &= ~0b0010;
+    if (from == H8 || to == H8) castling_rights &= ~0b0100;
+    if (from == A8 || to == A8) castling_rights &= ~0b1000;
+
+    white_pieces = 0;
+    black_pieces = 0;
+    for (int p = PAWN; p <= KING; p++) {
+        white_pieces |= pieces[WHITE][p];
+        black_pieces |= pieces[BLACK][p];
+    }
+    all_pieces = white_pieces | black_pieces;
+
+    side_to_move = opponent;
+
+    int king_sq = std::countr_zero(pieces[my_color][KING]);
+    if (is_square_attacked(Square(king_sq), opponent)) {
+        unmake_move(move, state);
+        return false;
+    }
+
+    return true;
+}
