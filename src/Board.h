@@ -4,6 +4,12 @@
 #include <algorithm>
 #include "Types.h"
 
+struct UndoState {
+    uint8_t castling_rights;
+    Square en_passant;
+    PieceType captured_piece; 
+};
+
 // Jak zmieścić ruch w 16 bitach?
 // Bity 0–5 (6 bitów): Pole startowe from
 // Bity 6–11 (6 bitów): Pole docelowe to
@@ -35,13 +41,7 @@ public:
     void generate_pseudo_legal_rook_moves(MoveList &move_list, Bitboard rook);
     void generate_pseudo_legal_queen_moves(MoveList &move_list, Bitboard queen);
 
-    // void unmake_move(Move move, const UndoState &state);
+    void unmake_move(Move move, const UndoState &state);
     bool is_square_attacked(Square sq, Color attacker);
     bool make_move_on_board(Move move, UndoState &state);
-};
-
-struct UndoState {
-    uint8_t castling_rights;
-    Square en_passant;
-    PieceType captured_piece; 
 };

@@ -379,3 +379,60 @@ bool Board::make_move_on_board(Move move, UndoState& state) {
 
     return true;
 }
+
+void Board::unmake_move(Move move, const UndoState& state) {
+    Square from = move.from();
+    Square to = move.to();
+    uint8_t flag = move.flag();
+    
+    Color opponent = side_to_move; 
+    Color my_color = (opponent == WHITE) ? BLACK : WHITE;
+
+    int moving_piece = -1;
+    if (flag & 0b1000) {
+        static const PieceType promo_pieces[] = { KNIGHT, BISHOP, ROOK, QUEEN };
+        moving_piece = promo_pieces[flag & 0b0011];
+        pieces[my_color][moving_piece] ^= (1ULL << to); 
+        moving_piece = PAWN; 
+    } else {
+        for (int p = PAWN; p <= KING; p++) {
+            if (pieces[my_color][p] & (1ULL << to)) {
+                moving_piece = p;
+                pieces[my_color][p] ^= (1ULL << to); 
+                break;
+            }
+        }
+    }
+
+    pieces[my_color][moving_piece] ^= (1ULL << from);
+
+    if (flag == MOVE_EN_PASSANT) {
+        Square ep_pawn_sq = (my_color == WHITE) ? Square(to - 8) : Square(to + 8);
+        pieces[my_color][PAWN] ^= (1ULL << to); 
+        pieces[opponent][PAWN] ^= (1ULL << ep_pawn_sq); 
+    } 
+    else if (flag == MOVE_KING_CASTLE) {
+        if (my_color) pieces[WHITE][ROOK] ^= ((1ULL << H1) | (1ULL << F1));
+        else pieces[BLACK][ROOK] ^= ((1ULL << H8) | (1ULL << F8));
+    } 
+    else if (flag == MOVE_QUEEN_CASTLE) {
+        if (my_color) pieces[WHITE][ROOK] ^= ((1ULL << A1) | (1ULL << D1));
+        else pieces[BLACK][ROOK] ^= ((1ULL << A8) | (1ULL << D8));
+    }
+
+    if (state.captured_piece != NONE && flag != MOVE_EN_PASSANT) {
+        pieces[opponent][state.captured_piece] ^= (1ULL << to);
+    }
+
+    castling_rights = state.castling_rights;
+    en_passant = state.en_passant;
+    side_to_move = my_color;
+
+    white_pieces = 0;
+    black_pieces = 0;
+    for (int p = PAWN; p <= KING; p++) {
+        white_pieces |= pieces[WHITE][p];
+        black_pieces |= pieces[BLACK][p];
+    }
+    all_pieces = white_pieces | black_pieces;
+}
