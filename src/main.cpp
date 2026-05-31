@@ -1,11 +1,15 @@
-#include <bit>
-#include <bitset>
-#include <cstdint>
-#include <iostream>
+#include "Board.h"
+#include "MoveGenerator.h"
 
-int main()
-{
-    for (const std::uint8_t i : {0, 0b11111111, 0b00011100, 0b00011101})
-        std::cout << "countr_zero( " << std::bitset<8>(i) << " ) = "
-                  << std::countr_zero(i) << '\n';
+
+int main() {
+    init_attacks(); 
+
+    Board board;
+    board.load_start_position();
+
+
+    
+
+    return 0;
 }

@@ -7,8 +7,7 @@ find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 # 2. Tworzymy program wykonywalny dla testów
 add_executable(engine_tests
     testMain.cpp
-#     testBitboards.cpp
-#     testPerft.cpp
+    testPerft.cpp
 )
 
 # 3. Podpinamy rdzeń silnika ORAZ bibliotekę Boost.Test
