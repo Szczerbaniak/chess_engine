@@ -2,6 +2,7 @@
 #include <array>
 #include <bit>
 #include <algorithm>
+#include <stdexcept>
 #include "Types.h"
 
 struct UndoState {
@@ -31,7 +32,7 @@ public:
     void load_start_position();
 
     Board() { clear(); };
-    ~Board();
+    ~Board() {};
 
     void generate_pseudo_legal_moves(MoveList &move_list);
     void generate_pseudo_legal_knight_moves(MoveList &move_list, Bitboard knight);

@@ -302,8 +302,11 @@ bool Board::make_move_on_board(Move move, UndoState& state) {
         }
     }
 
-    bool capture = flag & MOVE_CAPTURE;
-    bool is_en_passant = flag & MOVE_EN_PASSANT;
+    if (moving_piece == NONE) {
+        return false; 
+    }
+
+    bool capture = (flag == MOVE_CAPTURE) || (flag == MOVE_EN_PASSANT) || (flag >= MOVE_PROMO_CAP_KNIGHT);    bool is_en_passant = flag == MOVE_EN_PASSANT;
     bool promotion = flag & 0b1000;
 
     
@@ -372,6 +375,25 @@ bool Board::make_move_on_board(Move move, UndoState& state) {
     side_to_move = opponent;
 
     int king_sq = std::countr_zero(pieces[my_color][KING]);
+
+    // Sprawdzanie legalności roszady na poszczególnych polach
+    if (flag == MOVE_KING_CASTLE) {
+        Square start_sq = (my_color == WHITE) ? E1 : E8;
+        Square passing_sq = (my_color == WHITE) ? F1 : F8;
+        if (is_square_attacked(start_sq, opponent) || is_square_attacked(passing_sq, opponent)) {
+            unmake_move(move, state);
+            return false;
+        }
+    } else if (flag == MOVE_QUEEN_CASTLE) {
+        Square start_sq = (my_color == WHITE) ? E1 : E8;
+        Square passing_sq = (my_color == WHITE) ? D1 : D8;
+        if (is_square_attacked(start_sq, opponent) || is_square_attacked(passing_sq, opponent)) {
+            unmake_move(move, state);
+            return false;
+        }
+    }
+
+    // Ogólne sprawdzanie szacha
     if (is_square_attacked(Square(king_sq), opponent)) {
         unmake_move(move, state);
         return false;
@@ -404,19 +426,22 @@ void Board::unmake_move(Move move, const UndoState& state) {
         }
     }
 
+    if (moving_piece == -1) {
+        throw std::runtime_error("FATAL: Próba cofnięcia ruchu, ale na polu docelowym nie ma figury! (Double unmake?)");
+    }
+    
     pieces[my_color][moving_piece] ^= (1ULL << from);
 
     if (flag == MOVE_EN_PASSANT) {
         Square ep_pawn_sq = (my_color == WHITE) ? Square(to - 8) : Square(to + 8);
-        pieces[my_color][PAWN] ^= (1ULL << to); 
         pieces[opponent][PAWN] ^= (1ULL << ep_pawn_sq); 
     } 
     else if (flag == MOVE_KING_CASTLE) {
-        if (my_color) pieces[WHITE][ROOK] ^= ((1ULL << H1) | (1ULL << F1));
+        if (my_color == WHITE) pieces[WHITE][ROOK] ^= ((1ULL << H1) | (1ULL << F1));
         else pieces[BLACK][ROOK] ^= ((1ULL << H8) | (1ULL << F8));
     } 
     else if (flag == MOVE_QUEEN_CASTLE) {
-        if (my_color) pieces[WHITE][ROOK] ^= ((1ULL << A1) | (1ULL << D1));
+        if (my_color == WHITE) pieces[WHITE][ROOK] ^= ((1ULL << A1) | (1ULL << D1));
         else pieces[BLACK][ROOK] ^= ((1ULL << A8) | (1ULL << D8));
     }
 
