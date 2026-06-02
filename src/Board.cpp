@@ -461,3 +461,17 @@ void Board::unmake_move(Move move, const UndoState& state) {
     }
     all_pieces = white_pieces | black_pieces;
 }
+
+int Board::get_current_phase_value() const {
+    int phase_points = 0;
+
+    phase_points += std::popcount(pieces[WHITE][BISHOP] | pieces[BLACK][BISHOP]) * PHASE_WEIGHT_BISHOP;
+    phase_points += std::popcount(pieces[WHITE][KNIGHT] | pieces[BLACK][KNIGHT]) * PHASE_WEIGHT_KNIGHT;
+    phase_points += std::popcount(pieces[WHITE][ROOK] | pieces[BLACK][ROOK])   * PHASE_WEIGHT_ROOK;
+    phase_points += std::popcount(pieces[WHITE][QUEEN] | pieces[BLACK][QUEEN])  * PHASE_WEIGHT_QUEEN;
+
+    if (phase_points > 24) {
+        phase_points = 24;
+    }
+    return phase_points;
+}

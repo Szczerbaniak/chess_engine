@@ -22,7 +22,9 @@ add_library(engine_core STATIC
     # src/Attacks.cpp
     src/MoveGenerator.cpp
     # src/Search.cpp
-    # src/Evaluate.cpp
+    src/Evaluate.cpp
+    # src/EvaluationValues.h
+    # src/PestoTables.h
 )
 
 # Definiujemy, gdzie szukać nagłówków .h dla tej biblioteki

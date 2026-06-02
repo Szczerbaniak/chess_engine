@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include "Types.h"
+#include "EvaluationValues.h"
 
 struct UndoState {
     uint8_t castling_rights;
@@ -45,4 +46,7 @@ public:
     void unmake_move(Move move, const UndoState &state);
     bool is_square_attacked(Square sq, Color attacker);
     bool make_move_on_board(Move move, UndoState &state);
+
+    int get_current_phase_value() const;
+    // void load_fen(const std::string &fen);
 };
