@@ -122,3 +122,13 @@ struct MoveList {
         return &moves[count];
     }
 };
+
+enum fen : uint8_t
+{
+    POSITION,
+    MOVE,
+    CASTLE_RIGHTS,
+    EN_PASSANT,
+    HALF_MOVES,
+    FULL_MOVES,
+};

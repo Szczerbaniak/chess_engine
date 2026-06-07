@@ -3,6 +3,8 @@
 #include <bit>
 #include <algorithm>
 #include <stdexcept>
+#include <sstream>
+#include <cctype>
 #include "Types.h"
 #include "EvaluationValues.h"
 
@@ -48,5 +50,5 @@ public:
     bool make_move_on_board(Move move, UndoState &state);
 
     int get_current_phase_value() const;
-    // void load_fen(const std::string &fen);
+    void load_fen(const std::string &fen);
 };

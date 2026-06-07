@@ -475,3 +475,86 @@ int Board::get_current_phase_value() const {
     }
     return phase_points;
 }
+
+void Board::load_fen(const std::string& fen) {
+    clear();
+    std::stringstream ss(fen);
+    std::string position, move, castle_rights, en_pass, half_moves, full_moves;
+
+    ss >> position >> move >> castle_rights >> en_pass >> half_moves >> full_moves;
+
+    int rank = 7;
+    int column = 0;
+
+    for (char c : position) {
+        if (c == '/') {
+            rank--;   // Przechodzimy linię niżej
+            column = 0; // Resetujemy kolumnę do A
+        } else if (std::isdigit(c)) {
+            column += (c - '0'); // Cyfra oznacza puste pola, przesuwamy się w prawo
+        } 
+        else {
+            Color color = std::isupper(c) ? WHITE : BLACK;
+            char lower_c = std::tolower(c);
+            PieceType type = NONE;
+
+            switch (lower_c)
+            {
+            case 'p':
+                type = PAWN;
+                break;
+            case 'n':
+                type = KNIGHT;
+                break;
+            case 'b':
+                type = BISHOP;
+                break;
+            case 'r':
+                type = ROOK;
+                break;
+            case 'q':
+                type = QUEEN;
+                break;
+            case 'k':
+                type = KING;
+                break;
+            default:
+                break;
+            }
+
+            if(type != NONE) {
+                int sq = rank * 8 + column;
+                pieces[color][type] |= (1ULL << sq);
+            }
+            column++;
+        }
+    }
+
+    side_to_move = (move == "w") ? WHITE : BLACK;
+
+    castling_rights = 0;
+    if (castle_rights != "-") {
+        for (char c : castle_rights) {
+            if (c == 'K') castling_rights |= 0b0001; // Białe król
+            if (c == 'Q') castling_rights |= 0b0010; // Białe hetman
+            if (c == 'k') castling_rights |= 0b0100; // Czarne król
+            if (c == 'q') castling_rights |= 0b1000; // Czarne hetman
+        }
+    }
+
+    if (en_pass != "-") {
+        int ep_file = en_pass[0] - 'a';
+        int ep_rank = en_pass[1] - '1';
+        en_passant = Square(ep_rank * 8 + ep_file);
+    } else {
+        en_passant = NO_SQUARE;
+    }
+
+    white_pieces = 0;
+    black_pieces = 0;
+    for (int p = PAWN; p <= KING; p++) {
+        white_pieces |= pieces[WHITE][p];
+        black_pieces |= pieces[BLACK][p];
+    }
+    all_pieces = white_pieces | black_pieces;
+}

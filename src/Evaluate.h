@@ -10,11 +10,14 @@ struct Score {
     constexpr Score(int m, int t, int e) : mg(m), tr(t), eg(e) {}
     constexpr int interpolate(int game_phase) {
         int final_score;
+        if (game_phase > 24) game_phase = 24;
+        if (game_phase < 0)  game_phase = 0;
+
         if (game_phase > 12) {
             int factor = game_phase - 12;
-            final_score = (mg * factor + tr * (12 - factor)) / game_phase;
+            final_score = (mg * factor + tr * (12 - factor)) / 12;
         } else {
-            final_score = (eg * game_phase + tr * (12 - game_phase)) / game_phase;
+            final_score = (eg * game_phase + tr * (12 - game_phase)) / 12;
         }
 
         return final_score;

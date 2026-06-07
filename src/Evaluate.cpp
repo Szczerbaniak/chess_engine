@@ -9,7 +9,6 @@ void init_evaluation_tables() {
     for (int piece = PAWN; piece <= KING; piece++) {
         for (int sq = 0; sq < 64; ++sq) {
             int kaufman_mg = 0, kaufman_tr = 0, kaufman_eg = 0;
-            // int Pesco_tables_mg = 0, Pesco_tables_tr = 0, Pesco_tables_eg = 0;
 
             if (piece == PAWN) {
                 int column = sq % 8;
@@ -48,12 +47,12 @@ int evaluate_position_for_active_player(const Board& board) {
 
             w_pieces &= (w_pieces - 1); 
         }
-        // --- CZARNE FIGURY ---
+
         uint64_t b_pieces = board.pieces[BLACK][piece];
         while (b_pieces) {
             int sq = std::countr_zero(b_pieces);
 
-            // Odbicie lustrzane dla czarnych, aby czytały PST od swojej strony szachownicy
+            // Odbicie lustrzane dla czarnych, żeby czytały PST od swojej strony szachownicy
             int flipped_sq = sq ^ 56; 
             black_score.mg += PST_TABLES[piece][flipped_sq].mg;
             black_score.tr += PST_TABLES[piece][flipped_sq].tr;
@@ -130,9 +129,8 @@ int evaluate_position_for_active_player(const Board& board) {
     final_score.tr = white_score.tr - black_score.tr;
     final_score.eg = white_score.eg - black_score.eg;
 
-    // --- INTERPOLACJA FAZY ---
     int current_phase = board.get_current_phase_value();
     int evaluation = final_score.interpolate(current_phase);
 
-    // --- PERSPEKTYWA GRACZA NA RUCHU (Negamax standard) ---
-    return (board.side_to_move == WHITE) ? evaluation : -evaluation;}
+    return (board.side_to_move == WHITE) ? evaluation : -evaluation;
+}
